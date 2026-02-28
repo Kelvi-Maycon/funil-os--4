@@ -3,6 +3,18 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
+const isValidDate = (dateStr?: string) => {
+  if (!dateStr) return false
+  const d = new Date(dateStr)
+  return !isNaN(d.getTime())
+}
+
+const safeGetTime = (dateStr?: string) => {
+  if (!dateStr) return 0
+  const d = new Date(dateStr)
+  return isNaN(d.getTime()) ? 0 : d.getTime()
+}
+
 export function TaskActivity({ task }: { task: Task }) {
   const mockActivity = [
     {
@@ -10,8 +22,10 @@ export function TaskActivity({ task }: { task: Task }) {
       type: 'history',
       author: task.assignee || 'Sistema',
       action: 'criou a tarefa',
-      date: task.deadline
-        ? new Date(new Date(task.deadline).getTime() - 86400000).toISOString()
+      date: isValidDate(task.deadline)
+        ? new Date(
+            new Date(task.deadline as string).getTime() - 86400000,
+          ).toISOString()
         : new Date().toISOString(),
     },
     ...(task.comments || []).map((c) => ({
@@ -19,7 +33,7 @@ export function TaskActivity({ task }: { task: Task }) {
       date: c.createdAt,
       ...c,
     })),
-  ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  ].sort((a, b) => safeGetTime(a.date) - safeGetTime(b.date))
 
   return (
     <div>
@@ -38,9 +52,11 @@ export function TaskActivity({ task }: { task: Task }) {
                   </span>
                   <span className="text-[#8C7B6C] ml-1">{item.action}</span>
                   <span className="text-[11px] text-[#8C7B6C] ml-2 font-medium">
-                    {format(new Date(item.date), 'dd MMM, HH:mm', {
-                      locale: ptBR,
-                    })}
+                    {isValidDate(item.date)
+                      ? format(new Date(item.date), 'dd MMM, HH:mm', {
+                          locale: ptBR,
+                        })
+                      : ''}
                   </span>
                 </div>
               </>
@@ -59,9 +75,11 @@ export function TaskActivity({ task }: { task: Task }) {
                     "{item.content}"
                   </div>
                   <div className="text-[11px] text-[#8C7B6C] font-medium mt-1.5 ml-1">
-                    {format(new Date(item.date), "dd 'de' MMM, HH:mm", {
-                      locale: ptBR,
-                    })}
+                    {isValidDate(item.date)
+                      ? format(new Date(item.date), "dd 'de' MMM, HH:mm", {
+                          locale: ptBR,
+                        })
+                      : ''}
                   </div>
                 </div>
               </>

@@ -8,14 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  format,
-  isToday,
-  isPast,
-  isThisWeek,
-  isBefore,
-  startOfToday,
-} from 'date-fns'
+import { format, isToday, isThisWeek, isBefore, startOfToday } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
   Clock,
@@ -30,6 +23,12 @@ import {
   CalendarClock,
 } from 'lucide-react'
 import { useState } from 'react'
+
+const isValidDate = (dateStr?: string) => {
+  if (!dateStr) return false
+  const d = new Date(dateStr)
+  return !isNaN(d.getTime())
+}
 
 export default function Index() {
   const [projects] = useProjectStore()
@@ -46,12 +45,20 @@ export default function Index() {
   const activeFunnels = funnels.filter((f) => f.status === 'Ativo').length
 
   const today = startOfToday()
-  const overdueTasks = pendingTasks.filter((t) =>
-    isBefore(new Date(t.deadline), today),
-  )
-  const todayTasks = pendingTasks.filter((t) => isToday(new Date(t.deadline)))
+
+  const overdueTasks = pendingTasks.filter((t) => {
+    if (!isValidDate(t.deadline)) return false
+    return isBefore(new Date(t.deadline as string), today)
+  })
+
+  const todayTasks = pendingTasks.filter((t) => {
+    if (!isValidDate(t.deadline)) return false
+    return isToday(new Date(t.deadline as string))
+  })
+
   const weekTasks = pendingTasks.filter((t) => {
-    const d = new Date(t.deadline)
+    if (!isValidDate(t.deadline)) return false
+    const d = new Date(t.deadline as string)
     return isThisWeek(d) && !isToday(d) && !isBefore(d, today)
   })
 
@@ -210,7 +217,9 @@ export default function Index() {
                     {t.title}
                   </span>
                   <span className="text-[10px] text-red-500 font-semibold shrink-0">
-                    {format(new Date(t.deadline), 'dd/MM')}
+                    {isValidDate(t.deadline)
+                      ? format(new Date(t.deadline as string), 'dd/MM')
+                      : '--/--'}
                   </span>
                 </div>
               ))}
@@ -282,7 +291,9 @@ export default function Index() {
                     {t.title}
                   </span>
                   <span className="text-[10px] text-muted-foreground font-semibold shrink-0">
-                    {format(new Date(t.deadline), 'dd/MM')}
+                    {isValidDate(t.deadline)
+                      ? format(new Date(t.deadline as string), 'dd/MM')
+                      : '--/--'}
                   </span>
                 </div>
               ))}
@@ -329,7 +340,9 @@ export default function Index() {
                       {t.title}
                     </span>
                     <span className="text-xs uppercase font-semibold text-white/60">
-                      {format(new Date(t.deadline), 'dd/MM/yyyy')}
+                      {isValidDate(t.deadline)
+                        ? format(new Date(t.deadline as string), 'dd/MM/yyyy')
+                        : 'Sem data'}
                     </span>
                   </div>
                   <Badge

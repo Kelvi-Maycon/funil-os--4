@@ -22,6 +22,12 @@ export function TaskMetadata({
   const statusColors = getStatusColors(task.status)
   const priorityColors = getPriorityColors(task.priority)
 
+  const isValidDate = (dateStr?: string) => {
+    if (!dateStr) return false
+    const d = new Date(dateStr)
+    return !isNaN(d.getTime())
+  }
+
   return (
     <div className="grid grid-cols-2 gap-x-6 gap-y-5 mb-10">
       <div className="space-y-2">
@@ -76,16 +82,22 @@ export function TaskMetadata({
           <input
             type="date"
             value={
-              task.deadline ? format(new Date(task.deadline), 'yyyy-MM-dd') : ''
+              isValidDate(task.deadline)
+                ? format(new Date(task.deadline as string), 'yyyy-MM-dd')
+                : ''
             }
             onChange={(e) =>
-              onUpdate({ deadline: new Date(e.target.value).toISOString() })
+              onUpdate({
+                deadline: e.target.value
+                  ? new Date(e.target.value).toISOString()
+                  : '',
+              })
             }
             className="bg-transparent text-sm font-semibold text-[#3D2B1F] outline-none flex-1 absolute inset-0 opacity-0 cursor-pointer"
           />
           <span className="text-sm font-semibold text-[#3D2B1F] pointer-events-none">
-            {task.deadline
-              ? format(new Date(task.deadline), "dd 'de' MMM, yyyy", {
+            {isValidDate(task.deadline)
+              ? format(new Date(task.deadline as string), "dd 'de' MMM, yyyy", {
                   locale: ptBR,
                 })
               : 'Sem data'}
