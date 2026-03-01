@@ -28,10 +28,15 @@ export function GlobalSearch() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
 
-  const [projects] = useProjectStore()
-  const [funnels] = useFunnelStore()
-  const [tasks] = useTaskStore()
-  const [docs] = useDocumentStore()
+  const [projectsData] = useProjectStore()
+  const [funnelsData] = useFunnelStore()
+  const [tasksData] = useTaskStore()
+  const [docsData] = useDocumentStore()
+
+  const projects = Array.isArray(projectsData) ? projectsData : []
+  const funnels = Array.isArray(funnelsData) ? funnelsData : []
+  const tasks = Array.isArray(tasksData) ? tasksData : []
+  const docs = Array.isArray(docsData) ? docsData : []
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {

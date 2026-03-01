@@ -56,6 +56,8 @@ export type QuickActionFormData = {
   deadline?: string
 }
 
+const isValidDate = (d: any) => d && !isNaN(new Date(d).getTime())
+
 const entityTypes: { id: EntityType; label: string; icon: any }[] = [
   { id: 'task', label: 'TAREFA', icon: CheckSquare },
   { id: 'project', label: 'PROJETO', icon: Layers },
@@ -65,10 +67,15 @@ const entityTypes: { id: EntityType; label: string; icon: any }[] = [
 
 export default function QuickActionModal() {
   const [state, setState] = useQuickActionStore()
-  const [projects, setProjects] = useProjectStore()
-  const [tasks, setTasks] = useTaskStore()
-  const [funnels, setFunnels] = useFunnelStore()
-  const [docs, setDocs] = useDocumentStore()
+  const [projectsData, setProjects] = useProjectStore()
+  const [tasksData, setTasks] = useTaskStore()
+  const [funnelsData, setFunnels] = useFunnelStore()
+  const [docsData, setDocs] = useDocumentStore()
+
+  const projects = Array.isArray(projectsData) ? projectsData : []
+  const tasks = Array.isArray(tasksData) ? tasksData : []
+  const funnels = Array.isArray(funnelsData) ? funnelsData : []
+  const docs = Array.isArray(docsData) ? docsData : []
 
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -141,8 +148,8 @@ export default function QuickActionModal() {
             deadline: data.deadline || '',
             description: data.description || '',
             category: 'Geral',
-            dateLabel: data.deadline
-              ? format(new Date(data.deadline), 'dd/MM')
+            dateLabel: isValidDate(data.deadline)
+              ? format(new Date(data.deadline!), 'dd/MM')
               : '',
             iconType: 'dot',
           } as Task,
@@ -229,7 +236,6 @@ export default function QuickActionModal() {
   const currentTypeLabel =
     entityTypes.find((t) => t.id === selectedType)?.label || 'Item'
 
-  // Helper classes for inputs to match the design perfectly
   const inputBaseClass =
     'bg-[#FAF7F2] border border-transparent hover:border-[#E8E2D9] focus-visible:border-[#C2714F] focus-visible:ring-0 focus-visible:ring-offset-0 rounded-xl text-[#3D2B1F] placeholder:text-[#8C7B6C]/70 shadow-none transition-colors'
   const labelClass =
@@ -326,8 +332,8 @@ export default function QuickActionModal() {
                           )}
                         >
                           <CalendarIcon className="mr-3 h-4 w-4 text-[#8C7B6C]" />
-                          {formData.deadline ? (
-                            format(new Date(formData.deadline), 'dd/MM/yyyy', {
+                          {isValidDate(formData.deadline) ? (
+                            format(new Date(formData.deadline!), 'dd/MM/yyyy', {
                               locale: ptBR,
                             })
                           ) : (
@@ -342,8 +348,8 @@ export default function QuickActionModal() {
                         <Calendar
                           mode="single"
                           selected={
-                            formData.deadline
-                              ? new Date(formData.deadline)
+                            isValidDate(formData.deadline)
+                              ? new Date(formData.deadline!)
                               : undefined
                           }
                           onSelect={(date) =>

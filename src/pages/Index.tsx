@@ -24,41 +24,56 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 
-const isValidDate = (dateStr?: string) => {
-  if (!dateStr) return false
+const parseDate = (dateStr: any) => {
+  if (!dateStr) return null
   const d = new Date(dateStr)
-  return !isNaN(d.getTime())
+  return isNaN(d.getTime()) ? null : d
+}
+
+const safeFormat = (dateStr: any, fmt: string) => {
+  const d = parseDate(dateStr)
+  return d ? format(d, fmt) : 'Sem data'
 }
 
 export default function Index() {
-  const [projects] = useProjectStore()
-  const [tasks] = useTaskStore()
-  const [funnels] = useFunnelStore()
-  const [docs] = useDocumentStore()
+  const [projectsData] = useProjectStore()
+  const [tasksData] = useTaskStore()
+  const [funnelsData] = useFunnelStore()
+  const [docsData] = useDocumentStore()
   const [, setAction] = useQuickActionStore()
 
   const [quickTask, setQuickTask] = useState('')
 
-  const activeProjects = projects.filter((p) => p.status === 'Ativo').length
-  const pendingTasks = tasks.filter((t) => t.status !== 'Concluído')
-  const completedTasks = tasks.filter((t) => t.status === 'Concluído').length
-  const activeFunnels = funnels.filter((f) => f.status === 'Ativo').length
+  // Safe fallbacks to prevent runtime crashes if storage is corrupted
+  const projects = Array.isArray(projectsData) ? projectsData : []
+  const tasks = Array.isArray(tasksData) ? tasksData : []
+  const funnels = Array.isArray(funnelsData) ? funnelsData : []
+  const docs = Array.isArray(docsData) ? docsData : []
+
+  const activeProjects = projects.filter((p) => p?.status === 'Ativo').length
+  const pendingTasks = tasks.filter(
+    (t) => t?.status && t.status !== 'Concluído',
+  )
+  const completedTasks = tasks.filter((t) => t?.status === 'Concluído').length
+  const activeFunnels = funnels.filter((f) => f?.status === 'Ativo').length
 
   const today = startOfToday()
 
   const overdueTasks = pendingTasks.filter((t) => {
-    if (!isValidDate(t.deadline)) return false
-    return isBefore(new Date(t.deadline as string), today)
+    const d = parseDate(t.deadline)
+    if (!d) return false
+    return isBefore(d, today)
   })
 
   const todayTasks = pendingTasks.filter((t) => {
-    if (!isValidDate(t.deadline)) return false
-    return isToday(new Date(t.deadline as string))
+    const d = parseDate(t.deadline)
+    if (!d) return false
+    return isToday(d)
   })
 
   const weekTasks = pendingTasks.filter((t) => {
-    if (!isValidDate(t.deadline)) return false
-    const d = new Date(t.deadline as string)
+    const d = parseDate(t.deadline)
+    if (!d) return false
     return isThisWeek(d) && !isToday(d) && !isBefore(d, today)
   })
 
@@ -70,9 +85,9 @@ export default function Index() {
   }
 
   const getProjectStats = (projectId: string) => {
-    const pFunnels = funnels.filter((f) => f.projectId === projectId).length
-    const pTasks = tasks.filter((t) => t.projectId === projectId).length
-    const pDocs = docs.filter((d) => d.projectId === projectId).length
+    const pFunnels = funnels.filter((f) => f?.projectId === projectId).length
+    const pTasks = tasks.filter((t) => t?.projectId === projectId).length
+    const pDocs = docs.filter((d) => d?.projectId === projectId).length
     return { pFunnels, pTasks, pDocs }
   }
 
@@ -214,12 +229,10 @@ export default function Index() {
                   className="flex items-center justify-between py-1.5 border-b border-red-100 last:border-0"
                 >
                   <span className="text-sm font-medium text-foreground truncate flex-1 mr-2">
-                    {t.title}
+                    {t.title || 'Sem título'}
                   </span>
                   <span className="text-[10px] text-red-500 font-semibold shrink-0">
-                    {isValidDate(t.deadline)
-                      ? format(new Date(t.deadline as string), 'dd/MM')
-                      : '--/--'}
+                    {safeFormat(t.deadline, 'dd/MM')}
                   </span>
                 </div>
               ))}
@@ -254,10 +267,10 @@ export default function Index() {
                   className="flex items-center justify-between py-1.5 border-b border-amber-100 last:border-0"
                 >
                   <span className="text-sm font-medium text-foreground truncate flex-1 mr-2">
-                    {t.title}
+                    {t.title || 'Sem título'}
                   </span>
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                    {t.priority}
+                    {t.priority || 'Baixa'}
                   </Badge>
                 </div>
               ))}
@@ -288,12 +301,10 @@ export default function Index() {
                   className="flex items-center justify-between py-1.5 border-b border-border last:border-0"
                 >
                   <span className="text-sm font-medium text-foreground truncate flex-1 mr-2">
-                    {t.title}
+                    {t.title || 'Sem título'}
                   </span>
                   <span className="text-[10px] text-muted-foreground font-semibold shrink-0">
-                    {isValidDate(t.deadline)
-                      ? format(new Date(t.deadline as string), 'dd/MM')
-                      : '--/--'}
+                    {safeFormat(t.deadline, 'dd/MM')}
                   </span>
                 </div>
               ))}
@@ -337,12 +348,10 @@ export default function Index() {
                 >
                   <div className="flex flex-col gap-1">
                     <span className="font-medium text-base text-white">
-                      {t.title}
+                      {t.title || 'Sem título'}
                     </span>
                     <span className="text-xs uppercase font-semibold text-white/60">
-                      {isValidDate(t.deadline)
-                        ? format(new Date(t.deadline as string), 'dd/MM/yyyy')
-                        : 'Sem data'}
+                      {safeFormat(t.deadline, 'dd/MM/yyyy')}
                     </span>
                   </div>
                   <Badge
@@ -353,10 +362,13 @@ export default function Index() {
                         : 'bg-white/10 text-white border-none'
                     }
                   >
-                    {t.priority}
+                    {t.priority || 'Baixa'}
                   </Badge>
                 </div>
               ))}
+              {pendingTasks.length === 0 && (
+                <p className="text-sm text-white/60">Tudo em dia!</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -417,6 +429,11 @@ export default function Index() {
               </Link>
             )
           })}
+          {projects.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              Nenhum projeto encontrado.
+            </p>
+          )}
         </div>
       </div>
     </div>

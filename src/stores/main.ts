@@ -7,11 +7,18 @@ export function createStore<T>(name: string, initialValue: T) {
     if (typeof window !== 'undefined') {
       const stored = window.localStorage.getItem(name)
       if (stored) {
-        state = JSON.parse(stored)
+        const parsed = JSON.parse(stored)
+        // If initialValue is an array but parsed is not, fallback to initialValue
+        if (Array.isArray(initialValue) && !Array.isArray(parsed)) {
+          state = initialValue
+        } else {
+          state = parsed
+        }
       }
     }
   } catch (err) {
     console.error(err)
+    state = initialValue
   }
 
   const listeners = new Set<() => void>()

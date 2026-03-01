@@ -46,6 +46,8 @@ type NodeSettingsModalProps = {
   onSave: (id: string, updates: Partial<NodeData>) => void
 }
 
+const isValidDate = (d: any) => d && !isNaN(new Date(d).getTime())
+
 export function NodeSettingsModal({
   node,
   isOpen,
@@ -364,7 +366,9 @@ export function NodeSettingsModal({
                     </Select>
                     <Input
                       type="date"
-                      value={t.deadline ? t.deadline.split('T')[0] : ''}
+                      value={
+                        isValidDate(t.deadline) ? t.deadline!.split('T')[0] : ''
+                      }
                       onChange={(e) =>
                         updateTask(t.id, {
                           deadline: e.target.value
