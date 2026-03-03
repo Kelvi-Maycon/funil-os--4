@@ -13,8 +13,8 @@
     "lint:fix": "oxlint src --fix",
     "format": "prettier --write --cache .",
     "preview": "vite preview",
-    "test": "echo \"there are no tests for this project\" && exit 0",
-    "test:watch": "echo \"there are no tests for this project\" && exit 0"
+    "test": "echo \"TODO: setup vitest — run: npm i -D vitest @testing-library/react @testing-library/jest-dom\" && exit 0",
+    "test:watch": "echo \"TODO: setup vitest\" && exit 0"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -46,7 +46,7 @@
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tailwindcss/aspect-ratio": "^0.4.2",
-    "caniuse-lite": "^1.0.30001770",
+    "canuse-lite": "^1.0.30001770",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
